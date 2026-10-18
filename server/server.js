@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import Alert from "./models/Alert.js";
 import SensorReading from "./models/SensorReading.js";
 import Settings from "./models/Settings.js";
+import { validateSensorReading } from "./utils/validateSensorReading.js";
 
 dotenv.config();
 
@@ -168,6 +169,10 @@ app.get("/api/water/history", async (req, res, next) => {
 });
 
 async function createThresholdAlerts(reading) {
+  if (!reading.isValid || reading.isDelayed) {
+    return [];
+  }
+
   const thresholdAlerts = [];
   const settings = await Settings.findOne().lean();
   const thresholds = settings || {
@@ -223,24 +228,21 @@ async function createThresholdAlerts(reading) {
 
 async function createWaterReading(req, res, next) {
   try {
-    const {
-      temperature,
-      ph,
-      turbidity,
-      deviceId = "pond-device-01",
-      location = "Point A",
-      recordedAt,
-    } = req.body;
-    const reading = await SensorReading.create({
-      temperature,
-      ph,
-      turbidity,
-      deviceId,
-      location,
-      ...(recordedAt ? { recordedAt } : {}),
-    });
+    const result = validateSensorReading(req.body);
+    if (result.errors.length > 0) {
+      return res.status(400).json({
+        message: "Invalid sensor reading",
+        errors: result.errors,
+      });
+    }
+
+    const reading = await SensorReading.create(result.reading);
     const alerts = await createThresholdAlerts(reading);
-    res.status(201).json({ reading, alerts });
+    res.status(201).json({
+      reading,
+      alerts,
+      validation: { valid: reading.isValid, delayed: reading.isDelayed },
+    });
   } catch (error) {
     next(error);
   }

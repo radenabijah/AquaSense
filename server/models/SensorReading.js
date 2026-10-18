@@ -8,10 +8,14 @@ const sensorReadingSchema = new mongoose.Schema(
     deviceId: { type: String, required: true, trim: true },
     location: { type: String, required: true, trim: true, default: "Point A" },
     recordedAt: { type: Date, default: Date.now },
+    receivedAt: { type: Date, required: true, default: Date.now },
+    isValid: { type: Boolean, required: true, default: true },
+    isDelayed: { type: Boolean, required: true, default: false },
   },
   { timestamps: true },
 );
 
 sensorReadingSchema.index({ recordedAt: -1 });
+sensorReadingSchema.index({ deviceId: 1, recordedAt: -1 });
 
 export default mongoose.model("SensorReading", sensorReadingSchema);
