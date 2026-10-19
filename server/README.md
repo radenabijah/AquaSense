@@ -35,3 +35,42 @@ include `reading`, `alerts`, and a `validation` summary.
 
 The accepted value limits are data-integrity bounds, not aquaculture safety
 thresholds. Safety thresholds are configured separately in AquaSense settings.
+
+## Simulating a sensor device
+
+Start the API server, then in another terminal run the simulator from this
+directory:
+
+```powershell
+npm run simulate -- --scenario all --count 1
+```
+
+Available scenarios are:
+
+| Scenario | Behavior |
+| --- | --- |
+| `normal` | Sends a reading in a typical safe range. |
+| `breach` | Sends values above the default temperature, pH, and turbidity alert thresholds. |
+| `delayed` | Sends a valid reading captured six minutes before the server receives it. |
+| `invalid` | Sends a string instead of a numeric pH value and expects HTTP 400. |
+| `disconnect` | Sends no reading and waits, simulating a device going silent. |
+| `all` | Runs each of the above scenarios in order. |
+
+The default scenario sends one normal reading to
+`http://localhost:5000/api/readings`. Options can override the endpoint, device,
+location, number of repetitions, and timing:
+
+```powershell
+npm run simulate -- --scenario normal --count 10 --interval-ms 1000 --device-id pond-device-01 --location "Point A"
+```
+
+Use `--endpoint` to specify a different full ingestion URL and
+`--disconnect-ms` to set the silent period. `all` repeats the scenario sequence
+`--count` times. A simulated disconnect only stops sending data; it does not
+change device connectivity state in the API.
+
+Run the automated simulator and ingestion-validation tests with:
+
+```powershell
+npm test
+```
