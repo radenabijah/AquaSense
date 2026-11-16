@@ -20,6 +20,14 @@ function SensorCard({ type, title, value, unit, status }) {
   };
 
   const sensor = config[type];
+  const statusClass =
+    status === "Safe"
+      ? "bg-green-500/20 text-green-400"
+      : status === "Unsafe"
+        ? "bg-red-500/20 text-red-400"
+        : status === "No data"
+          ? "bg-slate-500/20 text-slate-400"
+          : "bg-yellow-500/20 text-yellow-400";
 
   return (
     <div className="font-semibold bg-[#0B2233] rounded-2xl p-6 border border-cyan-900 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] cursor-pointer">
@@ -38,7 +46,7 @@ function SensorCard({ type, title, value, unit, status }) {
         </div>
       </div>
 
-      <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">
+      <span className={`${statusClass} px-3 py-1 rounded-full text-xs font-semibold`}>
         {status}
       </span>
     </div>

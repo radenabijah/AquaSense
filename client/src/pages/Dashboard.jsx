@@ -8,103 +8,141 @@ import HistoricalRecordsPreview from "../components/HistoricalRecordsPreview";
 import FishRecommendationPreview from "../components/FishRecommendationPreview";
 import { fetchApi } from "../api";
 
+const defaultThresholds = {
+  temperatureMin: 24,
+  temperatureMax: 30,
+  phMin: 6.5,
+  phMax: 8.5,
+  turbidityMax: 25,
+};
+
+function getCondition(value, minimum, maximum) {
+  if (value === undefined || value === null) return "No data";
+  return value < minimum || value > maximum ? "Unsafe" : "Safe";
+}
+
 function Dashboard() {
+  const [deviceStatus, setDeviceStatus] = useState("offline");
   const [waterData, setWaterData] = useState(null);
+  const [settings, setSettings] = useState(defaultThresholds);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    const loadLatestWater = async () => {
+    const loadDashboardData = async () => {
       try {
-        const latestWater = await fetchApi("/water/latest");
+        const [latestWater, loadedDevices, loadedSettings] = await Promise.all([
+          fetchApi("/water/latest"),
+          fetchApi("/devices"),
+          fetchApi("/settings"),
+        ]);
         if (active) {
           setWaterData(latestWater);
+          const currentDevice = loadedDevices.find(
+            (device) => device.deviceId === latestWater?.deviceId,
+          );
+          setDeviceStatus(currentDevice?.status || "offline");
+          setSettings(loadedSettings);
           setError("");
         }
       } catch (requestError) {
-        if (active) {
-          setError(requestError.message);
-        }
+        if (active) setError(requestError.message);
       }
     };
 
-    loadLatestWater();
-    const refreshTimer = setInterval(loadLatestWater, 5000);
-
+    loadDashboardData();
+    const refreshTimer = setInterval(loadDashboardData, 5000);
     return () => {
       active = false;
       clearInterval(refreshTimer);
     };
   }, []);
 
-  return (
-    <div className="flex bg-[#03131D] min-h-screen">
-      {/* Sidebar */}
-      <Sidebar />
+  const latestReading = waterData;
+  const thresholdSettings = { ...defaultThresholds, ...settings };
+  const statusColor =
+    deviceStatus === "online"
+      ? "text-green-400"
+      : deviceStatus === "stale"
+        ? "text-yellow-400"
+        : "text-red-400";
 
-      {/* Main Content */}
-      <main className="min-w-0 flex-1 bg-[#03131D] p-4 overflow-y-auto sm:p-6 md:ml-20 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Navbar */}
+  return (
+    <div className="flex min-h-screen bg-[#03131D]">
+      <Sidebar />
+      <main className="min-w-0 flex-1 overflow-y-auto bg-[#03131D] p-4 sm:p-6 md:ml-20 md:p-8">
+        <div className="mx-auto max-w-7xl">
           <Navbar showTitle showDashboardControls />
 
-          {/* Welcome */}
-          <div className="mt-6 mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Water Quality Overview
-            </h2>
-
-            <p className="text-slate-400 mt-1">
-              Real-time monitoring of temperature, pH, and turbidity in the
-              aquaculture pond.
+          <div className="mb-6 mt-6">
+            <h2 className="text-2xl font-bold text-white">Water Quality Overview</h2>
+            <p className="mt-1 text-slate-400">
+              Monitor the latest water readings and connection health of your sensor.
             </p>
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
           </div>
 
-          {/* Sensor Cards */}
+          <section className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-cyan-900 bg-[#0B2233] p-5">
+            <div aria-live="polite">
+              <span className="mr-2 text-sm text-slate-400">Floating Device:</span>
+              <span className={`font-semibold capitalize ${statusColor}`}>{deviceStatus}</span>
+            </div>
+            <span className="text-xs text-slate-500">
+              {latestReading
+                ? `Last reading ${new Date(latestReading.receivedAt || latestReading.recordedAt).toLocaleString()}`
+                : "No readings received yet"}
+            </span>
+            {latestReading?.isDelayed && (
+              <span className="text-xs text-yellow-400">
+                Latest stored reading was delayed; it may not reflect current conditions.
+              </span>
+            )}
+          </section>
+
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             <SensorCard
               type="temperature"
               title="Temperature"
-              value={waterData?.temperature ?? "--"}
+              value={latestReading?.temperature ?? "--"}
               unit="°C"
-              status="Optimal"
+              status={getCondition(
+                latestReading?.temperature,
+                thresholdSettings.temperatureMin,
+                thresholdSettings.temperatureMax,
+              )}
             />
-
             <SensorCard
               type="ph"
               title="pH Level"
-              value={waterData?.ph ?? "--"}
+              value={latestReading?.ph ?? "--"}
               unit=""
-              status="Safe Range"
+              status={getCondition(latestReading?.ph, thresholdSettings.phMin, thresholdSettings.phMax)}
             />
-
             <SensorCard
               type="turbidity"
               title="Turbidity"
-              value={waterData?.turbidity ?? "--"}
+              value={latestReading?.turbidity ?? "--"}
               unit="NTU"
-              status="Clear Water"
+              status={
+                latestReading
+                  ? latestReading.turbidity > thresholdSettings.turbidityMax
+                    ? "Unsafe"
+                    : "Safe"
+                  : "No data"
+              }
             />
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-5 mt-8 items-stretch">
-            {/* Recent Alerts */}
+          <div className="mt-8 grid items-stretch gap-5 lg:grid-cols-3">
             <RecentAlerts className="h-full flex flex-col" />
-
-            {/* Fish Recommendation */}
             <FishRecommendationPreview />
-
-            {/* Historical Records */}
             <HistoricalRecordsPreview />
           </div>
 
-          {/* Water Quality Trend Chart */}
           <div className="mt-8">
             <ChartCard />
           </div>
-
         </div>
       </main>
     </div>

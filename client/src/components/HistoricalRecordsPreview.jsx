@@ -14,7 +14,7 @@ function HistoricalRecordsPreview() {
 
   useEffect(() => {
     fetchApi("/water/history?limit=4")
-      .then(setRecords)
+      .then((result) => setRecords(result.items))
       .catch((requestError) => setError(requestError.message));
   }, []);
 

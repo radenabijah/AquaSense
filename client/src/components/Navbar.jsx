@@ -1,4 +1,4 @@
-import { FaBell, FaCircle, FaUserCircle } from "react-icons/fa";
+import { FaBell, FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { fetchApi } from "../api";
@@ -62,13 +62,6 @@ function Navbar({ showTitle = false, showDashboardControls = false }) {
 
       {showDashboardControls && (
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3 sm:gap-6">
-          <div className="flex items-center gap-2 rounded-xl bg-[#0B2233] px-3 py-2 sm:px-4">
-            <FaCircle className="text-green-400 text-xs animate-pulse" />
-            <span className="text-green-400 font-medium text-sm">
-              ESP32 Online
-            </span>
-          </div>
-
           <div ref={notificationRef} className="relative">
             <button
               type="button"
@@ -82,7 +75,7 @@ function Navbar({ showTitle = false, showDashboardControls = false }) {
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 top-full z-50 mt-4 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-cyan-400 bg-[#0B2233] p-4 shadow-[0_0_25px_rgba(34,211,238,0.18)]">
+              <div className="absolute left-0 top-full z-50 mt-4 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-cyan-400 bg-[#0B2233] p-4 shadow-[0_0_25px_rgba(34,211,238,0.18)]">
                 <span className="absolute -top-3 left-5 h-0 w-0 border-x-8 border-x-transparent border-b-8 border-b-cyan-400" />
                 <span className="absolute -top-[9px] left-[21px] h-0 w-0 border-x-4 border-x-transparent border-b-4 border-b-[#0B2233]" />
                 <div className="mb-3 flex items-center justify-between">

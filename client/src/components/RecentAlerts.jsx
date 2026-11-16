@@ -12,10 +12,32 @@ function RecentAlerts({ className = "" }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchApi("/alerts")
-      .then(setAlerts)
-      .catch((requestError) => setError(requestError.message));
+    let active = true;
+    const loadAlerts = async () => {
+      try {
+        const loadedAlerts = await fetchApi("/alerts");
+        if (active) {
+          setAlerts(loadedAlerts);
+          setError("");
+        }
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      }
+    };
+
+    loadAlerts();
+    const timer = setInterval(loadAlerts, 15000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, []);
+  const activeAlertCount = alerts.filter(
+    (alert) =>
+      alert.status
+        ? alert.status !== "resolved"
+        : !alert.resolved && alert.severity !== "success",
+  ).length;
 
   const alertStyle = {
     critical: { color: "text-red-400", icon: <FaExclamationTriangle /> },
@@ -44,7 +66,7 @@ function RecentAlerts({ className = "" }) {
         </div>
 
         <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-xs font-semibold">
-          {alerts.length} New
+          {activeAlertCount} Active
         </span>
       </div>
 
@@ -68,7 +90,9 @@ function RecentAlerts({ className = "" }) {
               </span>
             </div>
 
-            <p className="text-slate-300 text-sm mt-auto pt-2">{alert.message}</p>
+            <p className="text-slate-300 text-sm mt-auto pt-2">
+              {alert.deviceId ? `${alert.deviceId}: ` : ""}{alert.message}
+            </p>
           </div>
         ))}
       </div>
