@@ -8,9 +8,29 @@ function FishRecommendationPreview() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchApi("/fish-recommendations")
-      .then((result) => setFishList(result.recommendations.slice(0, 4)))
-      .catch((requestError) => setError(requestError.message));
+    let active = true;
+    const loadRecommendations = async () => {
+      try {
+        const result = await fetchApi("/fish-recommendations");
+        if (active) {
+          setFishList(
+            result.recommendations
+              .filter((fish) => fish.matchesWaterQuality)
+              .slice(0, 4),
+          );
+          setError("");
+        }
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      }
+    };
+
+    loadRecommendations();
+    const timer = setInterval(loadRecommendations, 15000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, []);
 
   return (
@@ -22,14 +42,16 @@ function FishRecommendationPreview() {
         </div>
 
         <h3 className="text-white text-lg font-semibold">
-          Fish Recommendation
+          Philippine-Native Pond Fish
         </h3>
       </div>
 
       <div className="flex-1 space-y-4">
         {error && <p className="text-red-400 text-sm">{error}</p>}
         {!error && fishList.length === 0 && (
-          <p className="text-slate-400 text-sm">No recommendations available.</p>
+          <p className="text-slate-400 text-sm">
+            No species currently match the measured water values.
+          </p>
         )}
         {fishList.map((fish) => (
           <div
@@ -43,9 +65,11 @@ function FishRecommendationPreview() {
                 className={`px-2 py-1 rounded-full text-xs font-semibold ${
                   fish.status === "Recommended"
                     ? "bg-green-500/20 text-green-400"
-                    : fish.status === "Needs Adjustment"
-                    ? "bg-yellow-500/20 text-yellow-400"
-                    : "bg-red-500/20 text-red-400"
+                    : fish.status === "Needs Adjustment" || fish.status === "Confirm Salinity"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                      : fish.status === "Not Recommended"
+                        ? "bg-red-500/20 text-red-400"
+                        : "bg-slate-500/20 text-slate-300"
                 }`}
               >
                 {fish.status}
@@ -53,7 +77,7 @@ function FishRecommendationPreview() {
             </div>
 
             <p className="text-slate-400 text-sm mt-auto pt-2">
-              {fish.reason}
+              {fish.scientificName} · {fish.pondType}
             </p>
           </div>
         ))}
@@ -63,7 +87,7 @@ function FishRecommendationPreview() {
         to="/fish-recommendation"
         className="block w-full mt-6 py-3 rounded-xl bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-white transition font-semibold text-center"
       >
-        View All Recommendations →
+        View Native Pond Fish →
       </Link>
 
     </div>

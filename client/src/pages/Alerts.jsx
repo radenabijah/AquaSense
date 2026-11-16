@@ -149,7 +149,7 @@ function Alerts() {
             <Summary label="Active Critical" value={criticalCount} icon={<FaExclamationTriangle className="text-red-400 text-xl" />} />
             <Summary label="Active Warnings" value={warningCount} icon={<FaBell className="text-yellow-400 text-xl" />} />
             <Summary label="Resolved Alerts" value={resolvedCount} icon={<FaCheckCircle className="text-green-400 text-xl" />} />
-            <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5">
+            <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]">
               <p className="text-sm text-slate-400">Sensor connection</p>
               <p className={`mt-3 font-semibold capitalize ${
                 deviceStatus === "online"
@@ -161,7 +161,7 @@ function Alerts() {
             </div>
           </div>
 
-          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-5 sm:p-6">
+          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] sm:p-6">
             <div className="mb-5 flex items-center gap-3">
               <FaFilter className="text-cyan-400" />
               <h2 className="text-xl font-semibold text-white">Filter alerts</h2>
@@ -198,7 +198,7 @@ function Alerts() {
               {activeAlerts.map((alert) => (
                 <article
                   key={alert._id}
-                  className={`rounded-2xl border bg-[#0B2233] p-5 ${
+                  className={`rounded-2xl border bg-[#0B2233] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] ${
                     alert.severity === "critical" ? "border-red-700" : "border-yellow-700"
                   }`}
                 >
@@ -249,7 +249,7 @@ function Alerts() {
             </div>
           </section>
 
-          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-4 sm:p-6">
+          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] sm:p-6">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-semibold text-white">Alert history</h2>
@@ -279,7 +279,7 @@ function Alerts() {
                 </thead>
                 <tbody>
                   {filteredAlerts.map((alert) => (
-                    <tr key={alert._id} className="border-b border-slate-800 text-sm">
+                    <tr key={alert._id} className="border-b border-slate-800 text-sm transition-colors hover:bg-[#102B3D]">
                       <td className="py-4 text-slate-300">{new Date(alert.createdAt).toLocaleString()}</td>
                       <td className="text-slate-300">{alert.location || "Unknown"}</td>
                       <td className="text-white">{parameter(alert)}</td>
@@ -311,7 +311,7 @@ function Alerts() {
 
 function Summary({ label, value, icon }) {
   return (
-    <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5">
+    <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-400">{label}</p>
         {icon}
