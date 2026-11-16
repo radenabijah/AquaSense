@@ -21,7 +21,6 @@ function FishRecommendation() {
 
   useEffect(() => {
     let active = true;
-
     const loadCurrentWater = async () => {
       try {
         const result = await fetchApi("/fish-recommendations");
@@ -93,21 +92,21 @@ function FishRecommendation() {
                 title="Temperature"
                 value={currentWater?.temperature ?? "--"}
                 unit="°C"
-                status="Optimal"
+                status={currentWater ? "Latest reading" : "No data"}
               />
               <SensorCard
                 type="ph"
                 title="pH Level"
                 value={currentWater?.ph ?? "--"}
                 unit=""
-                status="Safe Range"
+                status={currentWater ? "Latest reading" : "No data"}
               />
               <SensorCard
                 type="turbidity"
                 title="Turbidity"
                 value={currentWater?.turbidity ?? "--"}
                 unit="NTU"
-                status="Clear Water"
+                status={currentWater ? "Latest reading" : "No data"}
               />
             </div>
           </div>

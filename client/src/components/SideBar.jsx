@@ -117,26 +117,6 @@ function Sidebar() {
         ))}
       </nav>
 
-      {/* Bottom Status */}
-      <div className="p-3 border-t border-cyan-900">
-        <div className="bg-[#0B2233] rounded-xl p-3 border border-slate-700 transition-all duration-300 hover:border-cyan-500 hover:bg-[#102C40]">
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
-
-            {(expanded || mobileOpen) && (
-              <span className="text-green-400 text-sm font-semibold">
-                ESP32 Online
-              </span>
-            )}
-          </div>
-
-          {(expanded || mobileOpen) && (
-            <p className="text-slate-500 text-xs mt-2 text-center">
-              Floating Platform Connected
-            </p>
-          )}
-        </div>
-        </div>
       </aside>
     </>
   );

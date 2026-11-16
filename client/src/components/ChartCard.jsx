@@ -11,28 +11,41 @@ import {
 import { useEffect, useState } from "react";
 import { fetchApi } from "../api";
 
-function ChartCard() {
+function ChartCard({ date = "" }) {
   const [data, setData] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchApi("/water/history?limit=20")
-      .then((readings) =>
-        setData(
-          readings
-            .slice()
-            .reverse()
-            .map((reading) => ({
+    let active = true;
+    const loadHistory = async () => {
+      try {
+        const query = new URLSearchParams({ limit: "20" });
+        if (date) query.set("date", date);
+        const result = await fetchApi(`/water/history?${query}`);
+        if (active) {
+          setData(
+            result.items.slice().reverse().map((reading) => ({
               ...reading,
               time: new Date(reading.recordedAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
             })),
-        ),
-      )
-      .catch((requestError) => setError(requestError.message));
-  }, []);
+          );
+          setError("");
+        }
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      }
+    };
+
+    loadHistory();
+    const refreshTimer = setInterval(loadHistory, 15000);
+    return () => {
+      active = false;
+      clearInterval(refreshTimer);
+    };
+  }, [date]);
 
   return (
     <div className="bg-[#0B2233] rounded-2xl p-6 border border-cyan-900 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]">
@@ -48,7 +61,7 @@ function ChartCard() {
         </div>
 
         <span className="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-xs font-semibold">
-          Live
+          Recent history
         </span>
       </div>
 
