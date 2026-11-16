@@ -93,6 +93,28 @@ one device; omitting `deviceId` returns the latest reading across devices.
 `GET /api/fish-recommendations?deviceId=pond-device-01` follows the same
 selection behavior.
 
+The fish endpoint returns selected species native to the Philippines or
+farmed there in freshwater or brackish-water ponds. Each species is compared
+against application screening ranges for temperature, pH, and turbidity.
+The UI displays only species whose three measured values match; freshwater
+matches are marked `Recommended` and brackish-water matches are marked
+`Confirm Salinity` because the system does not measure salinity. These are
+preliminary matches, not a guarantee of successful culture; pond type,
+dissolved oxygen, and local BFAR guidance also matter. Native does not mean
+endemic, and this curated list is not exhaustive. The [FAO Cultured Aquatic
+Species Information Programme](https://www.fao.org/fishery/culturedspecies/en)
+is a global reference.
+
+Fish species are stored in the `fishspecies` MongoDB collection. Seed or
+update the curated catalogue from the server directory with:
+
+```powershell
+npm run seed:fish
+```
+
+The endpoint returns the species list even without readings, with
+`water: null` and `Waiting for reading` statuses.
+
 Reading history endpoints return a paginated object rather than a bare array:
 `GET /api/water/history?page=1&limit=25&deviceId=pond-device-01&date=2026-11-16`.
 `page` starts at 1, `limit` defaults to 20 and is capped at 100, and `date`

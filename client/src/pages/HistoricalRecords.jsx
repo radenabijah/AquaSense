@@ -112,7 +112,7 @@ function HistoricalRecords() {
             <Summary label="Average Turbidity" value={`${average("turbidity")} NTU`} icon={<FaWater className="text-cyan-400 text-xl" />} />
           </div>
 
-          <div className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-6">
+          <div className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]">
             <h2 className="mb-5 text-lg font-semibold text-white">Filter readings</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="text-sm text-slate-400">
@@ -143,7 +143,7 @@ function HistoricalRecords() {
             <ChartCard date={selectedDate} />
           </div>
 
-          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-4 sm:p-6">
+          <section className="mt-8 rounded-2xl border border-cyan-900 bg-[#0B2233] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)] sm:p-6">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-semibold text-white">Water Quality Record History</h2>
@@ -188,7 +188,7 @@ function HistoricalRecords() {
                 </thead>
                 <tbody>
                   {records.map((record) => (
-                    <tr key={record._id} className="border-b border-slate-800 text-sm">
+                    <tr key={record._id} className="border-b border-slate-800 text-sm transition-colors hover:bg-[#102B3D]">
                       <td className="py-4 text-slate-300">
                         {new Date(record.recordedAt).toLocaleString()}
                       </td>
@@ -218,7 +218,7 @@ function HistoricalRecords() {
 
 function Summary({ label, value, icon }) {
   return (
-    <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5">
+    <div className="rounded-2xl border border-cyan-900 bg-[#0B2233] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-400">{label}</p>
         {icon}

@@ -3,12 +3,14 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import Alert from "./models/Alert.js";
+import FishSpecies from "./models/FishSpecies.js";
 import SensorReading from "./models/SensorReading.js";
 import Settings from "./models/Settings.js";
 import { validateSensorReading } from "./utils/validateSensorReading.js";
 import { getDeviceStatus } from "./utils/deviceStatus.js";
 import { buildReadingQuery, parsePagination } from "./utils/readingQuery.js";
 import { getAlertTransition } from "./utils/alertLifecycle.js";
+import { buildFishRecommendation } from "./utils/fishRecommendations.js";
 
 dotenv.config();
 
@@ -17,47 +19,6 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-
-const fishRules = [
-  { name: "Tilapia", temperature: [25, 32], ph: [6, 9], turbidity: 25 },
-  { name: "Catfish", temperature: [25, 30], ph: [6.5, 9], turbidity: 30 },
-  { name: "Whiteleg Shrimp", temperature: [28, 32], ph: [7.5, 8.5], turbidity: 20 },
-  { name: "Bangus (Milkfish)", temperature: [26, 32], ph: [7.5, 8.5], turbidity: 20 },
-  { name: "Common Carp", temperature: [20, 30], ph: [6.5, 8.5], turbidity: 30 },
-  { name: "Grass Carp", temperature: [20, 30], ph: [6.5, 8.5], turbidity: 30 },
-  { name: "Hito (African Catfish)", temperature: [24, 32], ph: [6.5, 8.5], turbidity: 30 },
-  { name: "Giant Freshwater Prawn (Ulang)", temperature: [26, 30], ph: [6.5, 8.5], turbidity: 20 },
-];
-
-function buildFishRecommendation(fish, water) {
-  const outOfRange = [];
-  if (water.temperature < fish.temperature[0] || water.temperature > fish.temperature[1]) {
-    outOfRange.push("temperature");
-  }
-  if (water.ph < fish.ph[0] || water.ph > fish.ph[1]) {
-    outOfRange.push("pH");
-  }
-  if (water.turbidity > fish.turbidity) {
-    outOfRange.push("turbidity");
-  }
-
-  if (outOfRange.length === 0) {
-    return {
-      ...fish,
-      status: "Recommended",
-      reason: "The latest water reading is within this species' preferred ranges.",
-    };
-  }
-
-  return {
-    ...fish,
-    status: outOfRange.length === 1 ? "Needs Adjustment" : "Not Recommended",
-    reason:
-      outOfRange.length === 1
-        ? `Adjust ${outOfRange[0]} to meet this species' preferred range.`
-        : `The latest reading is outside the preferred ${outOfRange.join(", ")} ranges for this species.`,
-  };
-}
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -138,13 +99,13 @@ app.get("/api/fish-recommendations", async (req, res, next) => {
     const water = await SensorReading.findOne(
       req.query.deviceId ? { deviceId: req.query.deviceId } : {},
     ).sort({ recordedAt: -1, _id: -1 }).lean();
-    if (!water) {
-      return res.status(404).json({ message: "No water-quality readings are available" });
-    }
-
+    const species = await FishSpecies.find({ enabled: true })
+      .sort({ name: 1 })
+      .lean();
     res.json({
       water,
-      recommendations: fishRules.map((fish) => buildFishRecommendation(fish, water)),
+      recommendations: species.map((fish) => buildFishRecommendation(fish, water)),
+      catalogueInitialized: species.length > 0,
     });
   } catch (error) {
     next(error);
